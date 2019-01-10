@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>小遊戲－打磚塊</title>
+    <style>
+        * { padding: 0; margin: 0; }
+        canvas { background: #eee; display: block; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+<h1 style="text-align:center">小遊戲－打磚塊</h1>
+
+<canvas id="myCanvas" width="480" height="320"></canvas>
+
+<script>
+function myCanvas() {
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+var x = canvas.width/2;
+var y = canvas.height-40;
+var dx = Math.random() * 4 - 2;
+var dy = Math.random() * -2 - 1;
+var ballRadius = 10;
+var paddleHeight = 15;
+var paddleWidth = 75;
+var paddleX = (canvas.width-paddleWidth)/2;
+var rightPressed = false;
+var leftPressed = false;
+var brickRowCount = 7;
+var brickColumnCount = 4;
+var brickWidth = 65;
+var brickHeight = 15;
+var brickPadding = 2;
+var brickOffsetTop = 30;
+var brickOffsetLeft = 10;
+var score = 0;
+var lives = 3;
+
+var bricks = [];
+for(var c=0; c<brickColumnCount; c++) {
+    bricks[c] = [];
+    for(var r=0; r<brickRowCount; r++) {
+        bricks[c][r] = { x: 0, y: 0, status: 1 };
+    }
+}
+
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+
+function keyDownHandler(e) {
+    if(e.keyCode == 39) {
+        rightPressed = true;
+    }
+    else if(e.keyCode == 37) {
+        leftPressed = true;
+    }
+}
+function keyUpHandler(e) {
+    if(e.keyCode == 39) {
+        rightPressed = false;
+    }
+    else if(e.keyCode == 37) {
+        leftPressed = false;
+    }
+}
+
+function collisionDetection() {
+    for(var c=0; c<brickColumnCount; c++) {
+        for(var r=0; r<brickRowCount; r++) {
+            var b = bricks[c][r];
+            if(b.status == 1) {
+                if(x-ballRadius > b.x && x-ballRadius < b.x+brickWidth && y-ballRadius > b.y && y-ballRadius < b.y+brickHeight || x+ballRadius > b.x && x+ballRadius < b.x+brickWidth && y+ballRadius > b.y && y+ballRadius < b.y+brickHeight) {
+                    dy = -(Math.random() * 0.6 + 0.7) * dy; 
+                    b.status = 0;
+                    score++;
+                    if(score == brickRowCount*brickColumnCount) {
+                        alert("YOU WIN, CONGRATS!");
+                        document.location.reload();
+                    }
+                }
+            }
+        }
+    }
+}
+
+function drawBall() {
+    ctx.beginPath();
+    ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+    ctx.fillStyle = "#0095DD";
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawPaddle() {
+    ctx.beginPath();
+    ctx.rect(paddleX, canvas.height-paddleHeight - 10, paddleWidth, paddleHeight);
+    ctx.fillStyle = "#66ff33";
+    ctx.fill();
+    ctx.closePath();
+}
+
+function drawBricks() {
+  for(var c=0; c<brickColumnCount; c++) {
+    for(var r=0; r<brickRowCount; r++) {
+      if(bricks[c][r].status == 1) {
+        var brickX = (r*(brickWidth+brickPadding))+brickOffsetLeft;
+        var brickY = (c*(brickHeight+brickPadding))+brickOffsetTop;
+        bricks[c][r].x = brickX;
+        bricks[c][r].y = brickY;
+        ctx.beginPath();
+        ctx.rect(brickX, brickY, brickWidth, brickHeight);
+        ctx.fillStyle = "#ff33ff";
+        ctx.fill();
+        ctx.closePath();
+      }
+    }
+  }
+}
+
+function drawScore() {
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#ff0000";
+    ctx.fillText("Score: "+score, 8, 20);
+}
+
+function drawLives() {
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#0095DD";
+    ctx.fillText("Lives: "+lives, canvas.width-65, 20);
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawBricks();
+    drawBall();
+    drawPaddle();
+    drawScore();
+    drawLives();
+    collisionDetection();
+
+    if (y + dy > canvas.height-paddleHeight - 10) {if(x > paddleX && x < paddleX + paddleWidth) {dy = -(Math.random() * 0.6 + 0.7) * dy;}}
+    if(x + dx > canvas.width-ballRadius || x + dx < ballRadius) {dx = -(Math.random() * 0.6 + 0.7) * dx;}
+    if(y + dy < ballRadius) {
+            dy = -(Math.random() * 0.6 + 0.7) * dy;
+        }
+    else if(y + dy > canvas.height-ballRadius) {
+            lives--;
+            if(!lives) {
+                alert("GAME OVER");
+                document.location.reload();
+            }
+            else {
+                x = canvas.width/2;
+                y = canvas.height-40;
+                dx = Math.random() * 4 - 2;
+                dy = Math.random() * -2 - 1;
+                paddleX = (canvas.width-paddleWidth)/2;
+            }
+        }
+    if(rightPressed && paddleX < canvas.width-paddleWidth) {
+        paddleX += 7;
+    }
+    else if(leftPressed && paddleX > 0) {
+        paddleX -= 7;
+    }
+    x += dx;
+    y += dy;
+    requestAnimationFrame(draw);
+}
+
+draw();
+}
+</script>
+
+<p style="text-align:center"><button onclick="myCanvas()">START</button></p>
+<p>遊戲介紹：很基本的打磚塊，在三條命的限制之下，能否打完全部方塊。</p>
+<p>遊玩方法：使用左右鍵移動。</p>
+
+</body>
+</html>
